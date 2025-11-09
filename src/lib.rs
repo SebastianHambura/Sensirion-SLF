@@ -5,7 +5,7 @@ use bitbybit::bitfield;
 pub mod slf3;
 
 #[cfg(feature = "fake_sensor")]
-mod fake_sensor;
+pub mod fake_sensor;
 
 pub trait Sensor {
     const ADDRESS: u8;
