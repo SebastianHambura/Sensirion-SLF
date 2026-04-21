@@ -1,10 +1,10 @@
 pub mod flow {
-pub struct UlPerMin;
-pub struct MlPerMin;
+pub type UlPerMin = f32;
+pub type MlPerMin = f32;
 }
 
 pub mod temp {
-    pub struct Celsius;
+    pub type Celsius = f32;
 }
 
 pub mod sensor_raw_data {

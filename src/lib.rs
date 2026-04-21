@@ -11,16 +11,23 @@ pub mod slf3;
 #[cfg(feature = "fake_sensor")]
 pub mod fake_sensor;
 
-pub trait Slf3sVariant {
-    type FlowUnit;
-    type TempUnit;
+/// The constants that different sensors from this family may have
+pub trait Slf3sVariant {  
     /// I2C address of the sensor
     const ADDRESS: u8;
-    /// Conversion of the liquid flow rate  sensor signals to a physical value is done with the scale factor.
+
+    /// Conversion of the liquid flow rate sensor signals to a physical value is done with the scale factor.
+    /// The physical value can be calculated as follows: physical_value = raw_value / LIQUID_FLOW_RATE_SCALE_FACTOR
     const LIQUID_FLOW_RATE_SCALE_FACTOR: f32;
+    /// The (final) flow unit of the sensor. E.g. ml/min or μl/min
+    type FlowUnit;
 
     /// Conversion of the  temperature sensor signals to a physical value is done with the scale factor.
+    /// The physical value can be calculated as follows: physical_value = raw_value / TEMPERATURE_SCALE_FACTOR
     const TEMPERATURE_SCALE_FACTOR: f32;
+    /// The (final) temperature unit of the sensor. E.g. °C
+    type TempUnit;
+
 }
 pub trait SensorCommunication {
     fn read_product_id(&mut self) -> Result<(ProductIdentifier, sensor_raw_data::SerialNumber)>;

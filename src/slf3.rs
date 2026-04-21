@@ -1,4 +1,5 @@
-use crate::{ProductIdentifier, SignalFlags, Slf3sVariant};
+use crate::units::sensor_raw_data;
+use crate::{ProductIdentifier, SensorCommunication, SignalFlags, Slf3sVariant};
 use anyhow::*;
 use embedded_hal::i2c::I2c;
 
@@ -75,11 +76,25 @@ impl<I2C: I2c, V: Slf3sVariant> SLF3S<I2C, V> {
             .map_err(|err| anyhow!("{:?}", err))?;
         Ok(())
     }
+
+    /// Reads the measurement and converts it to physical values using the scale factors from the variant.
+    pub fn read_physical_measurement(
+        &mut self,
+    ) -> anyhow::Result<(V::FlowUnit, V::TempUnit, SignalFlags)>
+    where
+        <V as Slf3sVariant>::FlowUnit: core::convert::From<f32>,
+        <V as Slf3sVariant>::TempUnit: core::convert::From<f32>,
+    {
+        let (flow, temp, signal) = self.read_measurement()?;
+        let flow = flow as f32 / V::LIQUID_FLOW_RATE_SCALE_FACTOR;
+        let temp = temp as f32 / V::TEMPERATURE_SCALE_FACTOR;
+        Ok((flow.into(), temp.into(), signal))
+    }
 }
 
-impl<I2C: I2c, V: Slf3sVariant> super::SensorCommunication for SLF3S<I2C, V> {
+impl<I2C: I2c, V: Slf3sVariant> SensorCommunication for SLF3S<I2C, V> {
     /// Implements "4.3.4 Read Product Identifier and Serial Number" from the documentation
-    fn read_product_id(&mut self) -> Result<(ProductIdentifier, u64)> {
+    fn read_product_id(&mut self) -> Result<(ProductIdentifier, sensor_raw_data::SerialNumber)> {
         self.write(Command::ReadProductIdentifier1, None)?;
         let data = self.read::<18>(Command::ReadProductIdentifier2)?;
 
@@ -105,7 +120,13 @@ impl<I2C: I2c, V: Slf3sVariant> super::SensorCommunication for SLF3S<I2C, V> {
     /// See "4.3.1 Start Continuous Measurement"
     ///
     /// Return  Ok((flow, temp, signal))
-    fn read_measurement(&mut self) -> Result<(u16, u16, SignalFlags)> {
+    fn read_measurement(
+        &mut self,
+    ) -> Result<(
+        sensor_raw_data::FlowrateData,
+        sensor_raw_data::TemperatureData,
+        SignalFlags,
+    )> {
         let mut data = [0; 3 * (2 + 1)];
         sensirion_i2c::i2c::read_words_with_crc(&mut self.i2c, V::ADDRESS, &mut data)
             .map_err(|err| convert_error(err))?;
