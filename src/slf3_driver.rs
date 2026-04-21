@@ -47,13 +47,20 @@ impl Command {
     }
 }
 
-pub struct SLF3S<I2C, V> {
+pub struct Slf3sDriver<I2C, V> {
     i2c: I2C,
     _variant: core::marker::PhantomData<V>,
 }
 
-impl<I2C: I2c, V: Slf3sVariant> SLF3S<I2C, V> {
+impl<I2C: I2c, V: Slf3sVariant> Slf3sDriver<I2C, V> {
     pub fn new(i2c: I2C) -> Self {
+        Self {
+            i2c,
+            _variant: core::marker::PhantomData,
+        }
+    }
+
+    pub fn new_with_variant(i2c: I2C, _variant: V) -> Self {
         Self {
             i2c,
             _variant: core::marker::PhantomData,
@@ -92,7 +99,7 @@ impl<I2C: I2c, V: Slf3sVariant> SLF3S<I2C, V> {
     }
 }
 
-impl<I2C: I2c, V: Slf3sVariant> SensorCommunication for SLF3S<I2C, V> {
+impl<I2C: I2c, V: Slf3sVariant> SensorCommunication for Slf3sDriver<I2C, V> {
     /// Implements "4.3.4 Read Product Identifier and Serial Number" from the documentation
     fn read_product_id(&mut self) -> Result<(ProductIdentifier, sensor_raw_data::SerialNumber)> {
         self.write(Command::ReadProductIdentifier1)?;
@@ -166,7 +173,7 @@ pub mod tests {
     use embedded_hal_mock::eh1::i2c::{Mock as I2cMock, Transaction as I2cTransaction};
     use sensirion_i2c::crc8;
 
-    use super::{Command, SLF3S};
+    use super::{Command, Slf3sDriver};
     use crate::SensorCommunication;
 
     fn with_crc(data: std::vec::Vec<u8>) -> std::vec::Vec<u8> {
@@ -199,7 +206,7 @@ pub mod tests {
         ];
 
         let mut i2c = I2cMock::new(&expectations);
-        let mut sensirion: SLF3S<_, crate::models::SLF3S_0600F> = SLF3S::new(i2c.clone());
+        let mut sensirion: Slf3sDriver<_, crate::models::SLF3S_0600F> = Slf3sDriver::new(i2c.clone());
 
         sensirion.start_continuous_measurement_water().unwrap();
         let (flow_read, temp_read, signal_read) = sensirion.read_measurement().unwrap();
@@ -230,7 +237,7 @@ pub mod tests {
         ];
 
         let mut i2c = I2cMock::new(&expectations);
-        let mut sensirion: SLF3S<_, crate::models::SLF3S_0600F> = SLF3S::new(i2c.clone());
+        let mut sensirion: Slf3sDriver<_, crate::models::SLF3S_0600F> = Slf3sDriver::new(i2c.clone());
 
         let (device, SN) = sensirion.read_product_id().unwrap();
         std::println!("device: {device:#?}, SN: {SN:#X}");

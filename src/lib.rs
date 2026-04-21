@@ -6,7 +6,7 @@ use crate::units::sensor_raw_data;
 
 pub mod units;
 pub mod models;
-pub mod slf3;
+pub mod slf3_driver;
 
 #[cfg(feature = "fake_sensor")]
 pub mod fake_sensor;
