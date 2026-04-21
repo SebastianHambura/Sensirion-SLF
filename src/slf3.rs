@@ -64,14 +64,14 @@ impl<I2C: I2c, V: Slf3sVariant> SLF3S<I2C, V> {
         &mut self,
         command: Command,
     ) -> anyhow::Result<[u8; DATA_SIZE]> {
-        self.write(command, None)?;
+        self.write(command)?;
         let mut data = [0; DATA_SIZE];
         sensirion_i2c::i2c::read_words_with_crc(&mut self.i2c, V::ADDRESS, &mut data)
             .map_err(|err| convert_error(err))?;
         Ok(data)
     }
 
-    fn write(&mut self, command: Command, data: Option<&[u8]>) -> anyhow::Result<()> {
+    fn write(&mut self, command: Command) -> anyhow::Result<()> {
         sensirion_i2c::i2c::write_command_u16(&mut self.i2c, V::ADDRESS, command as u16)
             .map_err(|err| anyhow!("{:?}", err))?;
         Ok(())
@@ -95,7 +95,7 @@ impl<I2C: I2c, V: Slf3sVariant> SLF3S<I2C, V> {
 impl<I2C: I2c, V: Slf3sVariant> SensorCommunication for SLF3S<I2C, V> {
     /// Implements "4.3.4 Read Product Identifier and Serial Number" from the documentation
     fn read_product_id(&mut self) -> Result<(ProductIdentifier, sensor_raw_data::SerialNumber)> {
-        self.write(Command::ReadProductIdentifier1, None)?;
+        self.write(Command::ReadProductIdentifier1)?;
         let data = self.read::<18>(Command::ReadProductIdentifier2)?;
 
         // According to the documentation, table 12:
@@ -109,12 +109,12 @@ impl<I2C: I2c, V: Slf3sVariant> SensorCommunication for SLF3S<I2C, V> {
     }
 
     fn start_continuous_measurement_water(&mut self) -> Result<()> {
-        self.write(Command::ContinuousMeasurementWater, None)?;
+        self.write(Command::ContinuousMeasurementWater)?;
         Ok(())
     }
 
     fn start_continuous_measurement_alcohol(&mut self) -> Result<()> {
-        self.write(Command::ContinuousMeasurementIsopropylAlcohol, None)?;
+        self.write(Command::ContinuousMeasurementIsopropylAlcohol)?;
         Ok(())
     }
     /// See "4.3.1 Start Continuous Measurement"
@@ -138,7 +138,7 @@ impl<I2C: I2c, V: Slf3sVariant> SensorCommunication for SLF3S<I2C, V> {
     }
 
     fn stop_measurement(&mut self) -> Result<()> {
-        self.write(Command::StopContinuousMeasurment, None)?;
+        self.write(Command::StopContinuousMeasurment)?;
         Ok(())
     }
 
