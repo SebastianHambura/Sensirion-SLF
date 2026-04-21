@@ -1,6 +1,5 @@
-use crate::{Sensor, ProductIdentifier, SignalFlags};
+use crate::{ProductIdentifier, SignalFlags, Slf3sVariant};
 use anyhow::*;
-use bitbybit::bitfield;
 use embedded_hal::i2c::I2c;
 
 /// According to https://sensirion.com/media/documents/C4F8D965/66F56F53/LQ_DS_SLF3S-0600F_Datasheet.pdf
@@ -47,17 +46,17 @@ impl Command {
     }
 }
 
-
-
-pub struct SLF3S<I2C> {
+pub struct SLF3S<I2C, V> {
     i2c: I2C,
+    _variant: core::marker::PhantomData<V>,
 }
 
-impl<I2C: I2c> SLF3S<I2C> {
-    //const ADDRESS: u8 = 0x61;
-
+impl<I2C: I2c, V: Slf3sVariant> SLF3S<I2C, V> {
     pub fn new(i2c: I2C) -> Self {
-        Self { i2c }
+        Self {
+            i2c,
+            _variant: core::marker::PhantomData,
+        }
     }
 
     fn read<const DATA_SIZE: usize>(
@@ -66,21 +65,19 @@ impl<I2C: I2c> SLF3S<I2C> {
     ) -> anyhow::Result<[u8; DATA_SIZE]> {
         self.write(command, None)?;
         let mut data = [0; DATA_SIZE];
-        sensirion_i2c::i2c::read_words_with_crc(&mut self.i2c, Self::ADDRESS, &mut data)
+        sensirion_i2c::i2c::read_words_with_crc(&mut self.i2c, V::ADDRESS, &mut data)
             .map_err(|err| convert_error(err))?;
         Ok(data)
     }
 
     fn write(&mut self, command: Command, data: Option<&[u8]>) -> anyhow::Result<()> {
-        sensirion_i2c::i2c::write_command_u16(&mut self.i2c, Self::ADDRESS, command as u16)
+        sensirion_i2c::i2c::write_command_u16(&mut self.i2c, V::ADDRESS, command as u16)
             .map_err(|err| anyhow!("{:?}", err))?;
         Ok(())
     }
 }
 
-impl<I2C: I2c> super::Sensor for SLF3S<I2C> {
-    const ADDRESS: u8 = 0x8;
-
+impl<I2C: I2c, V: Slf3sVariant> super::SensorCommunication for SLF3S<I2C, V> {
     /// Implements "4.3.4 Read Product Identifier and Serial Number" from the documentation
     fn read_product_id(&mut self) -> Result<(ProductIdentifier, u64)> {
         self.write(Command::ReadProductIdentifier1, None)?;
@@ -110,7 +107,7 @@ impl<I2C: I2c> super::Sensor for SLF3S<I2C> {
     /// Return  Ok((flow, temp, signal))
     fn read_measurement(&mut self) -> Result<(u16, u16, SignalFlags)> {
         let mut data = [0; 3 * (2 + 1)];
-        sensirion_i2c::i2c::read_words_with_crc(&mut self.i2c, Self::ADDRESS, &mut data)
+        sensirion_i2c::i2c::read_words_with_crc(&mut self.i2c, V::ADDRESS, &mut data)
             .map_err(|err| convert_error(err))?;
         let flow = u16::from_be_bytes([data[0], data[1]]);
         let temp = u16::from_be_bytes([data[3], data[4]]);
@@ -129,11 +126,6 @@ impl<I2C: I2c> super::Sensor for SLF3S<I2C> {
             .map_err(|err| anyhow!("{:?}", err))?;
         Ok(())
     }
-
-    /// SLF3S-0600F : 10 (μl/min)-1
-    const LIQUID_FLOW_RATE_SCALE_FACTOR: f32 = 10.0;
-    ///  SLF3S-0600F : 200 °C-1
-    const TEMPERATURE_SCALE_FACTOR: f32 = 200.0;
 }
 
 fn convert_error<I: embedded_hal::i2c::ErrorType>(
@@ -154,7 +146,7 @@ pub mod tests {
     use sensirion_i2c::crc8;
 
     use super::{Command, SLF3S};
-    use crate::Sensor;
+    use crate::SensorCommunication;
 
     fn with_crc(data: std::vec::Vec<u8>) -> std::vec::Vec<u8> {
         assert!(data.len() % 2 == 0);
@@ -186,7 +178,7 @@ pub mod tests {
         ];
 
         let mut i2c = I2cMock::new(&expectations);
-        let mut sensirion = SLF3S::new(i2c.clone());
+        let mut sensirion: SLF3S<_, crate::models::SLF3S_0600F> = SLF3S::new(i2c.clone());
 
         sensirion.start_continuous_measurement_water().unwrap();
         let (flow_read, temp_read, signal_read) = sensirion.read_measurement().unwrap();
@@ -217,7 +209,7 @@ pub mod tests {
         ];
 
         let mut i2c = I2cMock::new(&expectations);
-        let mut sensirion = SLF3S::new(i2c.clone());
+        let mut sensirion: SLF3S<_, crate::models::SLF3S_0600F> = SLF3S::new(i2c.clone());
 
         let (device, SN) = sensirion.read_product_id().unwrap();
         std::println!("device: {device:#?}, SN: {SN:#X}");
