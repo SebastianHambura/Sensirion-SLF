@@ -1,4 +1,4 @@
-use crate::{Sensor, SignalFlags};
+use crate::{SensorCommunication, SignalFlags, Slf3sVariant};
 
 pub struct FakeSLF3 {
     min_value: u16,
@@ -18,13 +18,18 @@ impl FakeSLF3 {
     }
 }
 
-impl Sensor for FakeSLF3 {
+impl Slf3sVariant for FakeSLF3 {
     const ADDRESS: u8 = 0x8;
 
     const LIQUID_FLOW_RATE_SCALE_FACTOR: f32 = 11.0;
 
     const TEMPERATURE_SCALE_FACTOR: f32 = 201.0;
 
+    type FlowUnit = crate::units::flow::UlPerMin;
+    type TempUnit = crate::units::temp::Celsius;
+}
+
+impl SensorCommunication for FakeSLF3 {
     fn read_product_id(&mut self) -> anyhow::Result<(crate::ProductIdentifier, u64)> {
         Ok((
             crate::ProductIdentifier::builder()
@@ -71,7 +76,7 @@ impl Sensor for FakeSLF3 {
 
 #[cfg(test)]
 pub mod tests {
-    use crate::Sensor;
+    use crate::*;
     extern crate std;
 
     #[test]
