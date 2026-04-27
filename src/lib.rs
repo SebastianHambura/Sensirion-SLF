@@ -2,7 +2,7 @@
 use anyhow::{Result};
 use bitbybit::bitfield;
 
-use crate::units::sensor_raw_data::{self};
+use crate::{models::Models, units::sensor_raw_data::{self}};
 
 pub mod models;
 pub mod slf3_driver;
@@ -91,3 +91,19 @@ pub struct ProductIdentifier {
     #[bits(0..=7, rw)]
     pub revision_number: u8,
 }
+
+impl ProductIdentifier {
+    pub fn check_subtype(&self) -> Result<Models> {
+        use models::* ;
+        match self.subtype() {
+            0x02 => Ok(Models::SLF3S_1300F(SLF3S_1300F)), //SLF3S-1300F
+            0x03 => Ok(Models::SLF3S_0600F(SLF3S_0600F)), //SLF3S-0600F
+            0x04 => Ok(Models::Unknown(self.subtype())), // SLF3C-1300F
+            0x05 => Ok(Models::Unknown(self.subtype())), // SLF3S-4000B
+            _ => Err(anyhow::anyhow!(
+                "Unknown subtype: {}. Cannot determine sensor variant",
+                self.subtype()
+            )),
+        }
+    }
+} 

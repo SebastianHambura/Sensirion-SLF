@@ -1,6 +1,12 @@
 #![allow(non_camel_case_types)]
 use super::Slf3sVariant;
 
+pub enum Models {
+    SLF3S_0600F(SLF3S_0600F),
+    SLF3S_1300F(SLF3S_1300F),
+    Unknown(u8),
+}
+
 /// TODO: Add link to datasheet
 pub struct SLF3S_0600F;
 
