@@ -1,5 +1,12 @@
-pub trait Unit: From<f32> {
+pub trait Unit {
     const DISPLAY_NAME: &'static str;
+
+    fn display_name(&self) -> &'static str {
+        Self::DISPLAY_NAME
+    }
+
+    fn from_value(value: f32) -> Self;
+    fn value(&self) -> f32;
 }
 pub mod flow {
     use super::*;
@@ -7,11 +14,13 @@ pub mod flow {
 
     impl Unit for UlPerMin {
         const DISPLAY_NAME: &'static str = "μl/min";
-    }
 
-    impl From<f32> for UlPerMin {
-        fn from(value: f32) -> Self {
-            UlPerMin(value)
+        fn from_value(value: f32) -> Self {
+            Self(value)
+        }
+
+        fn value(&self) -> f32 {
+            self.0
         }
     }
 
@@ -19,11 +28,13 @@ pub mod flow {
 
     impl Unit for MlPerMin {
         const DISPLAY_NAME: &'static str = "ml/min";
-    }
 
-    impl From<f32> for MlPerMin {
-        fn from(value: f32) -> Self {
-            MlPerMin(value)
+        fn from_value(value: f32) -> Self {
+            Self(value)
+        }
+
+        fn value(&self) -> f32 {
+            self.0
         }
     }
 }
@@ -34,11 +45,13 @@ pub mod temp {
 
     impl Unit for Celsius {
         const DISPLAY_NAME: &'static str = "°C";
-    }
 
-    impl From<f32> for Celsius {
-        fn from(value: f32) -> Self {
-            Celsius(value)
+        fn from_value(value: f32) -> Self {
+            Self(value)
+        }
+
+        fn value(&self) -> f32 {
+            self.0
         }
     }
 }

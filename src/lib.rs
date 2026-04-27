@@ -1,13 +1,12 @@
 #![no_std]
-use anyhow::{Result, anyhow};
+use anyhow::{Result};
 use bitbybit::bitfield;
 
-use crate::units::sensor_raw_data::{self, FlowrateData};
+use crate::units::sensor_raw_data::{self};
 
 pub mod models;
 pub mod slf3_driver;
 pub mod units;
-use crate::units::Unit;
 
 #[cfg(feature = "fake_sensor")]
 pub mod fake_sensor;
@@ -38,22 +37,6 @@ pub trait Slf3sVariant {
 
     fn address(&self) -> u8 {
         Self::ADDRESS
-    }
-
-    fn liquid_flow(&self, raw_value: FlowrateData) -> Self::FlowUnit {
-        Self::FlowUnit::from(raw_value as f32 / Self::LIQUID_FLOW_RATE_SCALE_FACTOR)
-    }
-
-    fn flow_unit_string(&self) -> &'static str {
-        Self::FlowUnit::DISPLAY_NAME
-    }
-
-    fn temperature(&self, raw_value: sensor_raw_data::TemperatureData) -> Self::TempUnit {
-        Self::TempUnit::from(raw_value as f32 / Self::TEMPERATURE_SCALE_FACTOR)
-    }
-
-    fn temp_unit_string(&self) -> &'static str {
-        Self::TempUnit::DISPLAY_NAME
     }
 }
 pub trait SensorCommunication {
