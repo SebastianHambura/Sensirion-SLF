@@ -19,6 +19,7 @@ impl FakeSLF3 {
 }
 
 impl Slf3sVariant for FakeSLF3 {
+    const NAME: &'static str = "FakeSLF3";
     const ADDRESS: u8 = 0x8;
 
     const LIQUID_FLOW_RATE_SCALE_FACTOR: f32 = 11.0;

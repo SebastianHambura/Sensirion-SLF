@@ -13,6 +13,8 @@ pub mod fake_sensor;
 
 /// The constants that different sensors from this family may have
 pub trait Slf3sVariant {  
+    const NAME: &'static str;
+
     /// I2C address of the sensor
     const ADDRESS: u8;
 
@@ -72,3 +74,5 @@ pub struct ProductIdentifier {
     #[bits(0..=7, rw)]
     pub revision_number: u8,
 }
+
+
