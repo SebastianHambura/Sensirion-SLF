@@ -1,4 +1,5 @@
-use crate::{SensorCommunication, SignalFlags, Slf3sVariant};
+use crate::{SensorCommunication, SignalFlags};
+use crate::models::Slf3sVariant;
 
 pub struct FakeSLF3 {
     min_value: u16,

@@ -11,7 +11,7 @@ pub mod flow {
     pub struct UlPerMin(f32);
 
     impl Unit for UlPerMin {
-        const DISPLAY_NAME: &'static str = "μl/min";
+        const DISPLAY_NAME: &'static str = "ul/min";
     }
 
     impl From<f32> for UlPerMin {
