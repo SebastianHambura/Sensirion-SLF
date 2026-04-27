@@ -1,26 +1,28 @@
-pub trait Unit {
+pub trait Unit: From<f32> + Into<f32> {
     const DISPLAY_NAME: &'static str;
 
     fn display_name(&self) -> &'static str {
         Self::DISPLAY_NAME
     }
-
-    fn from_value(value: f32) -> Self;
-    fn value(&self) -> f32;
 }
+
 pub mod flow {
     use super::*;
     pub struct UlPerMin(f32);
 
     impl Unit for UlPerMin {
         const DISPLAY_NAME: &'static str = "μl/min";
+    }
 
-        fn from_value(value: f32) -> Self {
+    impl From<f32> for UlPerMin {
+        fn from(value: f32) -> Self {
             Self(value)
         }
+    }
 
-        fn value(&self) -> f32 {
-            self.0
+    impl From<UlPerMin> for f32 {
+        fn from(val: UlPerMin) -> Self {
+            val.0
         }
     }
 
@@ -28,13 +30,17 @@ pub mod flow {
 
     impl Unit for MlPerMin {
         const DISPLAY_NAME: &'static str = "ml/min";
+    }
 
-        fn from_value(value: f32) -> Self {
+    impl From<f32> for MlPerMin {
+        fn from(value: f32) -> Self {
             Self(value)
         }
+    }
 
-        fn value(&self) -> f32 {
-            self.0
+    impl From<MlPerMin> for f32 {
+        fn from(val: MlPerMin) -> Self {
+            val.0
         }
     }
 }
@@ -45,19 +51,22 @@ pub mod temp {
 
     impl Unit for Celsius {
         const DISPLAY_NAME: &'static str = "°C";
+    }
 
-        fn from_value(value: f32) -> Self {
+    impl From<f32> for Celsius {
+        fn from(value: f32) -> Self {
             Self(value)
         }
+    }
 
-        fn value(&self) -> f32 {
-            self.0
+    impl From<Celsius> for f32 {
+        fn from(value: Celsius) -> Self {
+            value.0
         }
     }
 }
 
 pub mod sensor_raw_data {
-    use super::*;
     pub type FlowrateData = u16;
     pub type TemperatureData = u16;
     pub type SerialNumber = u64;
