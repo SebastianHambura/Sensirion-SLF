@@ -1,5 +1,5 @@
 use crate::units::sensor_raw_data;
-use crate::{ProductIdentifier, SensorCommunication, SignalFlags, Slf3sVariant};
+use crate::{ProductIdentifier, SensorCommunication, SensorInformation, SignalFlags, Slf3sVariant};
 use anyhow::*;
 use embedded_hal::i2c::I2c;
 
@@ -157,18 +157,24 @@ impl<I2C: I2c, V: Slf3sVariant> SensorCommunication for Slf3sDriver<I2C, V> {
 }
 
 // Giving access to the Slf3sVariant info from the Driver
-impl<I2C: I2c, V: Slf3sVariant> Slf3sVariant for Slf3sDriver<I2C, V> {
-    const NAME: &'static str = V::NAME;
+impl<I2C: I2c, V: Slf3sVariant> SensorInformation for Slf3sDriver<I2C, V> {
+    fn name(&self) -> &'static str {
+        V::NAME
+    }
 
-    const ADDRESS: u8 = V::ADDRESS;
+    fn flow_unit(&self) -> &'static str {
+        use crate::units::Unit; 
+        V::FlowUnit::DISPLAY_NAME
+    }
 
-    const LIQUID_FLOW_RATE_SCALE_FACTOR: f32 = V::LIQUID_FLOW_RATE_SCALE_FACTOR;
+    fn temp_unit(&self) -> &'static str {
+        use crate::units::Unit; 
+        V::TempUnit::DISPLAY_NAME
+    }
 
-    type FlowUnit = V::FlowUnit;
-
-    const TEMPERATURE_SCALE_FACTOR: f32 = V::TEMPERATURE_SCALE_FACTOR;
-
-    type TempUnit = V::TempUnit;
+    fn address(&self) -> u8 {
+        V::ADDRESS
+    }
 }
 
 fn convert_error<I: embedded_hal::i2c::ErrorType>(
