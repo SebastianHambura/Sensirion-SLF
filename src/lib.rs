@@ -2,11 +2,12 @@
 use anyhow::{Result, anyhow};
 use bitbybit::bitfield;
 
-use crate::units::sensor_raw_data;
+use crate::units::sensor_raw_data::{self, FlowrateData};
 
 pub mod models;
 pub mod slf3_driver;
 pub mod units;
+use crate::units::Unit;
 
 #[cfg(feature = "fake_sensor")]
 pub mod fake_sensor;
@@ -22,13 +23,38 @@ pub trait Slf3sVariant {
     /// The physical value can be calculated as follows: physical_value = raw_value / LIQUID_FLOW_RATE_SCALE_FACTOR
     const LIQUID_FLOW_RATE_SCALE_FACTOR: f32;
     /// The (final) flow unit of the sensor. E.g. ml/min or μl/min
-    type FlowUnit;
+    type FlowUnit: units::Unit;
 
     /// Conversion of the  temperature sensor signals to a physical value is done with the scale factor.
     /// The physical value can be calculated as follows: physical_value = raw_value / TEMPERATURE_SCALE_FACTOR
     const TEMPERATURE_SCALE_FACTOR: f32;
     /// The (final) temperature unit of the sensor. E.g. °C
-    type TempUnit;
+    type TempUnit: units::Unit;
+
+    // Some ergonomic functions
+    fn name(&self) -> &'static str {
+        Self::NAME
+    }
+
+    fn address(&self) -> u8 {
+        Self::ADDRESS
+    }
+
+    fn liquid_flow(&self, raw_value: FlowrateData) -> Self::FlowUnit {
+        Self::FlowUnit::from(raw_value as f32 / Self::LIQUID_FLOW_RATE_SCALE_FACTOR)
+    }
+
+    fn flow_unit_string(&self) -> &'static str {
+        Self::FlowUnit::DISPLAY_NAME
+    }
+
+    fn temperature(&self, raw_value: sensor_raw_data::TemperatureData) -> Self::TempUnit {
+        Self::TempUnit::from(raw_value as f32 / Self::TEMPERATURE_SCALE_FACTOR)
+    }
+
+    fn temp_unit_string(&self) -> &'static str {
+        Self::TempUnit::DISPLAY_NAME
+    }
 }
 pub trait SensorCommunication {
     fn read_product_id(&mut self) -> Result<(ProductIdentifier, sensor_raw_data::SerialNumber)>;
