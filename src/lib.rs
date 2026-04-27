@@ -41,7 +41,9 @@ pub trait SensorInformation {
     fn name(&self) -> &'static str;
     fn address(&self) -> u8;
     fn flow_unit(&self) -> &'static str;
+    fn flow_factor(&self) -> f32;
     fn temp_unit(&self) -> &'static str;
+    fn temp_factor(&self) -> f32;
 }
 
 impl<Port: embedded_hal::i2c::I2c> SensorDriver<Port> {
@@ -116,5 +118,13 @@ impl<Port: embedded_hal::i2c::I2c> SensorInformation for SensorDriver<Port> {
 
     fn temp_unit(&self) -> &'static str {
         dispatch!(self, d => d.temp_unit())
+    }
+
+    fn flow_factor(&self) -> f32 {
+        dispatch!(self, d => d.flow_factor())
+    }
+
+    fn temp_factor(&self) -> f32 {
+        dispatch!(self, d => d.temp_factor())
     }
 }

@@ -138,6 +138,16 @@ impl<I2C: I2c, V: Slf3sVariant> SensorInformation for Slf3sDriver<I2C, V> {
     fn address(&self) -> u8 {
         V::ADDRESS
     }
+    
+    fn flow_factor(&self) -> f32 {
+        V::LIQUID_FLOW_RATE_SCALE_FACTOR
+    }
+    
+    fn temp_factor(&self) -> f32 {
+        V::TEMPERATURE_SCALE_FACTOR
+    }
+
+    
 }
 
 fn convert_error<I: embedded_hal::i2c::ErrorType>(
