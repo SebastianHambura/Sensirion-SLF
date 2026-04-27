@@ -4,15 +4,15 @@ use bitbybit::bitfield;
 
 use crate::units::sensor_raw_data;
 
-pub mod units;
 pub mod models;
 pub mod slf3_driver;
+pub mod units;
 
 #[cfg(feature = "fake_sensor")]
 pub mod fake_sensor;
 
 /// The constants that different sensors from this family may have
-pub trait Slf3sVariant {  
+pub trait Slf3sVariant {
     const NAME: &'static str;
 
     /// I2C address of the sensor
@@ -29,16 +29,24 @@ pub trait Slf3sVariant {
     const TEMPERATURE_SCALE_FACTOR: f32;
     /// The (final) temperature unit of the sensor. E.g. °C
     type TempUnit;
-
 }
 pub trait SensorCommunication {
     fn read_product_id(&mut self) -> Result<(ProductIdentifier, sensor_raw_data::SerialNumber)>;
     fn start_continuous_measurement_water(&mut self) -> Result<()>;
     fn start_continuous_measurement_alcohol(&mut self) -> Result<()>;
-    fn read_measurement(&mut self) -> Result<(sensor_raw_data::FlowrateData, sensor_raw_data::TemperatureData, SignalFlags)>;
+    fn read_measurement(
+        &mut self,
+    ) -> Result<(
+        sensor_raw_data::FlowrateData,
+        sensor_raw_data::TemperatureData,
+        SignalFlags,
+    )>;
     fn stop_measurement(&mut self) -> Result<()>;
     fn soft_reset(&mut self) -> Result<()>;
 }
+
+pub trait Slf3sSensor: SensorCommunication + Slf3sVariant {}
+impl<T> Slf3sSensor for T where T: SensorCommunication + Slf3sVariant {}
 
 /// According to https://sensirion.com/media/documents/C4F8D965/66F56F53/LQ_DS_SLF3S-0600F_Datasheet.pdf
 ///
@@ -74,5 +82,3 @@ pub struct ProductIdentifier {
     #[bits(0..=7, rw)]
     pub revision_number: u8,
 }
-
-

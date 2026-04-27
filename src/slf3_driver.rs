@@ -156,6 +156,21 @@ impl<I2C: I2c, V: Slf3sVariant> SensorCommunication for Slf3sDriver<I2C, V> {
     }
 }
 
+// Giving access to the Slf3sVariant info from the Driver
+impl<I2C: I2c, V: Slf3sVariant> Slf3sVariant for Slf3sDriver<I2C, V> {
+    const NAME: &'static str = V::NAME;
+
+    const ADDRESS: u8 = V::ADDRESS;
+
+    const LIQUID_FLOW_RATE_SCALE_FACTOR: f32 = V::LIQUID_FLOW_RATE_SCALE_FACTOR;
+
+    type FlowUnit = V::FlowUnit;
+
+    const TEMPERATURE_SCALE_FACTOR: f32 = V::TEMPERATURE_SCALE_FACTOR;
+
+    type TempUnit = V::TempUnit;
+}
+
 fn convert_error<I: embedded_hal::i2c::ErrorType>(
     error: sensirion_i2c::i2c::Error<I>,
 ) -> anyhow::Error {
@@ -206,7 +221,8 @@ pub mod tests {
         ];
 
         let mut i2c = I2cMock::new(&expectations);
-        let mut sensirion: Slf3sDriver<_, crate::models::SLF3S_0600F> = Slf3sDriver::new(i2c.clone());
+        let mut sensirion: Slf3sDriver<_, crate::models::SLF3S_0600F> =
+            Slf3sDriver::new(i2c.clone());
 
         sensirion.start_continuous_measurement_water().unwrap();
         let (flow_read, temp_read, signal_read) = sensirion.read_measurement().unwrap();
@@ -237,7 +253,8 @@ pub mod tests {
         ];
 
         let mut i2c = I2cMock::new(&expectations);
-        let mut sensirion: Slf3sDriver<_, crate::models::SLF3S_0600F> = Slf3sDriver::new(i2c.clone());
+        let mut sensirion: Slf3sDriver<_, crate::models::SLF3S_0600F> =
+            Slf3sDriver::new(i2c.clone());
 
         let (device, SN) = sensirion.read_product_id().unwrap();
         std::println!("device: {device:#?}, SN: {SN:#X}");
