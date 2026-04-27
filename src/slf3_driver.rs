@@ -67,6 +67,10 @@ impl<I2C: I2c, V: Slf3sVariant> Slf3sDriver<I2C, V> {
         }
     }
 
+    pub fn into_inner(self) -> I2C {
+        self.i2c
+    }
+
     fn read<const DATA_SIZE: usize>(
         &mut self,
         command: Command,
