@@ -52,11 +52,11 @@ impl SensorCommunication for FakeSLF3 {
         Ok(())
     }
 
-    fn read_measurement(&mut self) -> anyhow::Result<(u16, u16, crate::SignalFlags)> {
+    fn read_measurement(&mut self) -> anyhow::Result<(i16, i16, crate::SignalFlags)> {
         let value = self.min_value as f32
             + ((self.max_value - self.min_value) as f32 * self.current_point as f32
                 / self.period as f32);
-        let value = value as u16;
+        let value = value as i16;
 
         let mut signal_flag = SignalFlags::new_with_raw_value(0);
         signal_flag.set_air_in_line(false);

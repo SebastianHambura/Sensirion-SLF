@@ -100,8 +100,8 @@ impl<I2C: I2c, V: Slf3sVariant> SensorCommunication for Slf3sDriver<I2C, V> {
         let mut data = [0; 3 * (2 + 1)];
         sensirion_i2c::i2c::read_words_with_crc(&mut self.i2c, V::ADDRESS, &mut data)
             .map_err(|err| convert_error(err))?;
-        let flow = u16::from_be_bytes([data[0], data[1]]);
-        let temp = u16::from_be_bytes([data[3], data[4]]);
+        let flow = i16::from_be_bytes([data[0], data[1]]);
+        let temp = i16::from_be_bytes([data[3], data[4]]);
         let signal = u16::from_be_bytes([data[6], data[7]]);
         let signal_flags = SignalFlags::new_with_raw_value(signal);
         Ok((flow, temp, signal_flags))
