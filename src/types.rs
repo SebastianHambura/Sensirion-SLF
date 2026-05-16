@@ -21,7 +21,7 @@ pub enum Command {
     /// command, the sensor needs up to 0.5 ms to power
     /// down the heater, enter idle mode and be receptive for a
     /// new command.
-    StopContinuousMeasurment = 0x3FF9,
+    StopContinuousMeasurement = 0x3FF9,
 
     /// This sequence resets the sensor with a separate reset
     /// block, which is as much as possible detached from the

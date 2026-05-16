@@ -1,16 +1,14 @@
 #![no_std]
 use anyhow::Result;
 
-use crate::{
-    types::{ProductIdentifier, SignalFlags},
-    units::sensor_raw_data::{self},
-};
+use crate::units::sensor_raw_data::{self};
 
 pub mod models;
 pub mod slf3_driver;
 pub mod types;
 pub mod units;
 
+pub use types::{Command, ProductIdentifier, SignalFlags};
 #[cfg(feature = "fake_sensor")]
 pub mod fake_sensor;
 

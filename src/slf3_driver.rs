@@ -108,7 +108,7 @@ impl<I2C: I2c, V: Slf3sVariant> SensorCommunication for Slf3sDriver<I2C, V> {
     }
 
     fn stop_measurement(&mut self) -> Result<()> {
-        self.write(Command::StopContinuousMeasurment)?;
+        self.write(Command::StopContinuousMeasurement)?;
         Ok(())
     }
 
